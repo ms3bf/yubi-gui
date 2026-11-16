@@ -23,3 +23,7 @@ python -m http.server 8000
 ## クレジット
 
 手モデルは Godot OpenXR Hand Tracking Demo（MIT License）を改変して使用しています。three.js（MIT License）を同梱しています。全文は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
+
+## ライセンス
+
+[MIT License](LICENSE)。ただし `three/` の three.js と、手モデル（Godot OpenXR Hand Tracking Demo を改変したもの）はそれぞれの著作者の MIT License に従います（[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）。
