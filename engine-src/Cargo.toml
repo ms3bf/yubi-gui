@@ -1,0 +1,23 @@
+[package]
+name = "yubi_engine"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "golden_runner"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+sha2 = "0.10"
+wasm-bindgen = "0.2"
+half = "2"
+blake2 = "0.10"
+
+[profile.release]
+codegen-units = 1
+lto = true

@@ -7,7 +7,9 @@
 
 ## しくみ
 
-探索エンジン（候補生成・スケジューラ・評価モデル）は Rust で書いて WebAssembly にしたもので、`engine/releases/<hash>/` にあります。すべてブラウザ内で計算し、サーバーへ推論を送りません。3D は three.js、手と動作は `product/` と `assets/` のデータを使います。
+探索エンジン（候補生成・スケジューラ・評価モデル）は Rust で書いて WebAssembly にしたもので、ビルド済みのものが `engine/releases/<hash>/`、ソースが `engine-src/` にあります。すべてブラウザ内で計算し、サーバーへ推論を送りません。3D は three.js、手と動作は `product/` と `assets/` のデータを使います。
+
+エンジンだけを自分のアプリに組み込む方法（入出力の仕様、Node やブラウザからの呼び方、ソースからのビルド）は [ENGINE_API.md](ENGINE_API.md) にまとめています。
 
 ## 手元で動かす
 
