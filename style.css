@@ -1,0 +1,490 @@
+/* YUBI GUI — 2026-09-15 UI改修。配置は UI_PC.md、見た目は sample/g-stage-right.html と sample/m1-scroll.html に合わせる。
+   右手＝暖色 / 左手＝寒色。色だけに意味を持たせず、必ず指遣いの文字を併記する。時刻・評価値は相対値であり秒ではない。 */
+:root{
+  --r-900:#a83a17;--r-600:#e1642f;--r-400:#f0966c;--l-900:#1d4d80;--l-600:#2f7cc4;--l-400:#7fb0e0;
+  --wait:#d3342f;--pin:#d7a63a;
+  --bg:#15171c;--panel:#1e2128;--line:#31363f;--fg:#e9ecf1;--fg2:#98a0ad;--fg3:#6b7280;
+  --acc:#4da3ff;--accR:#e1642f;--pw:396px;--ch:330px;--lx:96px;
+  --font:"Inter","Yu Gothic UI","Hiragino Kaku Gothic ProN",Meiryo,system-ui,sans-serif;
+  --mono:"SFMono-Regular",Consolas,"Roboto Mono",monospace;
+  font-family:var(--font);color:var(--fg);background:var(--bg);font-synthesis:none;
+}
+*{box-sizing:border-box}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%}
+html,body{height:100%}
+body{margin:0;font-size:13px;background:var(--bg);color:var(--fg);display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+button,input,select,progress{font:inherit;color:inherit}
+button{cursor:pointer;background:#262b34;border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:5px 10px}
+button:hover:not(:disabled){background:#2f353f}
+button:disabled{opacity:.42;cursor:default}
+button.primary{background:var(--acc);border-color:var(--acc);color:#08243f;font-weight:700}
+button.primary:hover:not(:disabled){background:#68b1ff}
+button.quiet{background:transparent}
+input,select{background:#15181d;border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:5px 8px;min-width:0}
+input[type=checkbox]{accent-color:var(--acc);width:15px;height:15px}
+input[type=range]{accent-color:var(--acc);padding:0}
+:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.mono,.t{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--fg3)}
+.small{font-size:11px}
+.spacer{flex:1}
+.sr-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--acc);color:#08243f;padding:8px 14px}
+.skip:focus{left:8px;top:8px}
+kbd{font-family:var(--mono);font-size:9.5px;opacity:.75;margin-left:6px;border:1px solid rgba(255,255,255,.35);border-radius:3px;padding:0 3px}
+
+/* ── 上部バー ── */
+.top{flex:none;display:flex;align-items:center;gap:12px;padding:7px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top h1{font-size:13.5px;margin:0;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.top h1 svg{width:19px;height:21px;fill:none;stroke:var(--acc);stroke-width:1.6}
+.top form{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+.top #alg{flex:1;min-width:120px;font-family:var(--mono);font-size:13.5px;letter-spacing:.06em;padding:7px 11px;background:#101217}
+.top #search-button{padding:9px 20px;white-space:nowrap}
+.top .initial{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--fg2);white-space:nowrap}
+.top .initial select{font-size:11px;padding:4px 6px;max-width:150px}
+.holds{display:flex;flex-direction:column;gap:3px}
+.holdrow{display:flex;align-items:center;gap:4px}
+.holdrow>span{font-size:10px;color:var(--fg2);width:14px;text-align:center}
+.hbtn{background:#20242c;border:1px solid var(--line);color:var(--fg2);border-radius:5px;min-width:30px;padding:3px 6px;font-size:11px;font-family:var(--mono);line-height:1.5}
+.holdrow.R .hbtn.on{background:var(--accR);border-color:var(--accR);color:#fff;font-weight:700}
+.holdrow.L .hbtn.on{background:var(--l-600);border-color:var(--l-600);color:#fff;font-weight:700}
+.icon-button{width:32px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
+.icon-button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── 画面タブ（all_actions.css の .workspace-tabs は使わない） ── */
+.tabs{flex:none;display:flex;gap:2px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tabs>button{background:none;border:0;padding:8px 14px 7px;font-size:12.5px;color:var(--fg2);border-bottom:2px solid transparent;font-weight:600;border-radius:0}
+.tabs>button[aria-selected=true]{color:var(--fg);border-bottom-color:var(--acc)}
+.tabs>button span{font-size:10.5px;color:var(--fg3);font-weight:400;margin-left:5px}
+.message{cursor:pointer;flex:none;padding:7px 14px;background:#22303e;color:#cfe3f6;font-size:12px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.message.error{background:#3a2420;color:#ffc3b6}
+
+/* ── 探索ワークスペース ── */
+#search-workspace{flex:1;min-height:0;display:flex;flex-direction:column}
+.upper{flex:1;min-height:0;display:flex}
+.stagewrap{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
+.stage{flex:1;min-height:0;position:relative;overflow:hidden;background:radial-gradient(120% 90% at 50% 34%,#1b2027,#0c0e11 72%)}
+.stage canvas{width:100%!important;height:100%!important;display:block}
+.stage-label{display:none}
+.stage-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--fg3);font-size:12px}
+/* stage.js が付ける回転の字幕。左下の視点セレクトと重ならないよう右寄せにする */
+.stage .rotation-caption{display:none!important}
+.hud{position:absolute;inset:0;pointer-events:none;z-index:3}
+.hud .sym{position:absolute;left:18px;top:12px;font-family:var(--mono);font-size:30px;font-weight:700;line-height:1}
+.hud .sub{display:none}
+.hudholds{display:none}
+.hb{border-radius:7px;padding:4px 10px;font-size:10px;text-align:center;line-height:1.35;border:1px solid}
+.hb.R{background:rgba(225,100,47,.13);border-color:#7a4028;color:#ffb894}
+.hb.L{background:rgba(47,124,196,.13);border-color:#2b5580;color:#a7cdf2}
+.hb b{display:block;font-size:14px;font-family:var(--mono)}
+.tools{position:absolute;left:13px;bottom:12px;z-index:4}
+.view-select{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#c3cad4;font-size:11px;padding:4px 6px}
+.view-select option{background:#1e2128;color:var(--fg)}
+.asset-status{flex:none;margin:0;padding:3px 12px;font-size:10px;color:var(--fg3);background:var(--panel);border-top:1px solid var(--line);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.asset-status.error{color:#ff9f93}
+/* 動画の記録中だけ、3Dステージを 4:3 の横長（--capw × --caph、上限 640×480px。画面に収める）の
+   箱にする。canvas は描画バッファごと 4:3 になり、終わるとクラスを外すだけで元のレイアウトへ戻る。 */
+body.recording{overflow:hidden}
+body.recording .stagewrap{position:fixed;left:0;top:0;width:var(--capw,640px);height:var(--caph,480px);z-index:60;background:var(--bg)}
+body.recording .stage{flex:none;width:var(--capw,640px);height:var(--caph,480px)}
+body.recording .transport,body.recording .asset-status,body.recording .stage .tools{display:none}
+.transport{flex:none;background:var(--panel);border-top:1px solid var(--line);padding:4px 12px 5px}
+.transport #scrubber{width:100%;height:16px;margin:0}
+.transport .trow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.transport .trow button{padding:4px 9px}
+/* 手送りはPCもスマホも同じ並び（最初・前・再生・次・最後）。再生だけ幅と色を変える。
+   絵は文字ではなくインラインSVG。iOS で絵文字に化けないようにするため。 */
+.steps{display:flex;gap:4px;align-items:center}
+.steps button{min-width:34px;display:flex;align-items:center;justify-content:center}
+.steps .play{min-width:52px;background:var(--acc);color:#08243f;border-color:var(--acc)}
+.steps svg,.mfoot .rowC svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.steps .ic-play path,.mfoot .rowC .ic-play path{fill:currentColor}
+.mfoot .rowC button{display:flex;align-items:center;justify-content:center}
+.mfoot .rowC svg{width:22px;height:22px}
+.transport .t{font-family:var(--mono);font-size:11px;color:var(--fg2);white-space:nowrap}
+.transport #current-move{max-width:210px;overflow:hidden;text-overflow:ellipsis}
+.transport #main-time small{font-size:9px;color:var(--fg3)}
+.speed-buttons{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-left:auto}
+.speed-buttons button{background:#20242c;border:0;border-radius:0;color:var(--fg2);padding:4px 8px;font-size:10.5px}
+.speed-buttons button.active{background:var(--acc);color:#08243f;font-weight:700}
+
+/* ── 仕切り ── */
+.vsplit{width:6px;flex:none;background:var(--line);cursor:col-resize;position:relative}
+.vsplit::after{content:"";position:absolute;left:2px;top:50%;width:2px;height:30px;margin-top:-15px;background:#4b525d;border-radius:2px}
+.hsplit{flex:none;height:6px;background:var(--line);cursor:row-resize;position:relative}
+.hsplit::after{content:"";position:absolute;top:2px;left:50%;width:34px;height:2px;margin-left:-17px;background:#4b525d;border-radius:2px}
+.vsplit:hover,.hsplit:hover{background:var(--acc)}
+body.dragging{user-select:none;cursor:col-resize}
+body.draggingV{user-select:none;cursor:row-resize}
+
+/* ── 右パネル ── */
+.panel{flex:none;width:var(--pw);min-width:260px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.ptabs{display:flex;align-items:center;padding:3px 4px 0;border-bottom:1px solid var(--line);flex:none}
+.ptabs button{background:none;border:0;color:var(--fg2);font-size:11.5px;padding:7px 10px 6px;border-bottom:2px solid transparent;font-weight:600;white-space:nowrap;border-radius:0}
+.ptabs button[aria-selected=true]{color:var(--fg);border-bottom-color:var(--acc)}
+.ptabs button i{font-style:normal;color:var(--fg3);font-size:10px;margin-left:4px}
+.ptabs .collapse{margin-left:auto;color:var(--fg3);font-size:15px;padding:4px 8px}
+.pfilter{display:flex;gap:6px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line);flex:none;flex-wrap:wrap}
+.pfilter input[type=search]{flex:1;min-width:90px}
+.pfilter select{font-size:11.5px;padding:4px 6px}
+.pfilter label{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--fg2);white-space:nowrap}
+.pfilter button{font-size:11px;padding:4px 8px}
+.pbody{flex:1;overflow:auto;min-height:0}
+.pfoot{flex:none;padding:5px 10px;border-top:1px solid var(--line);font-size:10px;color:var(--fg3);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.pfoot>span{display:flex;gap:9px;flex-wrap:wrap;align-items:center;min-width:0}
+.pfoot button{font-size:10px;padding:2px 7px}
+.pfoot progress{width:80px;height:7px;accent-color:var(--acc)}
+.pnote{margin:7px 10px;font-size:10.5px;color:var(--fg3);line-height:1.6}
+.rail{flex:none;width:34px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:9px}
+.rail button{width:24px;height:24px;padding:0}
+.rail .vt{writing-mode:vertical-rl;font-size:10.5px;color:var(--fg3);letter-spacing:.16em}
+
+/* ── 候補 ── */
+.candidate-row{padding:9px 12px 11px;border-bottom:1px solid var(--line);cursor:pointer;display:block}
+.candidate-row.selected{background:#262b34;box-shadow:inset 3px 0 0 var(--acc)}
+.candidate-row.dragging{opacity:.5}
+.candidate-head{display:flex;align-items:baseline;gap:7px}
+.rank-number{width:17px;height:17px;border-radius:50%;background:#333a45;color:#aeb6c2;font-size:10px;display:flex;align-items:center;justify-content:center;flex:none;font-weight:700}
+.candidate-row.selected .rank-number{background:var(--acc);color:#08243f}
+.candidate-name{flex:1;min-width:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.candidate-cost{font-family:var(--mono);font-size:11.5px;color:var(--fg2);white-space:nowrap}
+.candidate-cost small{font-size:9px;color:var(--fg3);margin-right:4px}
+.equal-badge{margin-left:5px;font-size:9px;background:#2d3a2c;color:#8fcf95;border-radius:8px;padding:1px 6px;font-family:var(--font)}
+.candidate-alg{font-family:var(--mono);font-size:10px;color:var(--fg3);margin:3px 0 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.candidate-score{display:flex;flex-wrap:wrap;gap:3px}
+.cellpair{border-radius:4px;overflow:hidden;min-width:30px;border:1px solid #333a45;background:#191c22;cursor:pointer;padding:0;display:block}
+.cellpair.sel{outline:2px solid #ffd166;outline-offset:-1px}
+.cellpair .mv,.cellpair .fg{display:block}
+.cellpair .mv{font-family:var(--mono);font-size:11.5px;font-weight:700;text-align:center;padding:1px 4px;color:#dde2e9;background:#232830;line-height:1.55}
+.cellpair .fg{font-size:10.5px;text-align:center;padding:1px 4px;line-height:1.6;font-weight:600;white-space:nowrap}
+.cellpair.R .fg{background:#4a2417;color:#ffb894}
+.cellpair.L .fg{background:#15304b;color:#a7cdf2}
+.cellpair.BOTH .fg{background:#332a4d;color:#c8b6f0}
+.cellpair.G .fg{background:#2d323b;color:#b7bfca}
+.cellpair.G .mv{color:#aeb6c2}
+.cellpair.wait{border-color:#6b3630}
+.cellpair.same{opacity:.34}
+.cellpair.diff{box-shadow:0 0 0 1px #ffd166}
+.candidate-bottom{display:flex;gap:10px;font-size:10px;color:var(--fg3);margin-top:7px;font-family:var(--mono);align-items:center;flex-wrap:wrap}
+.candidate-bottom label{display:flex;align-items:center;gap:4px;font-family:var(--font)}
+.candidate-bottom button{font-size:10px;padding:2px 7px}
+.candidate-bottom .star{background:none;border:0;font-size:13px;color:var(--pin);padding:0 3px}
+.reorder-buttons{display:flex;gap:3px;margin-left:auto}
+.compare-box{padding:10px 12px;border-bottom:1px solid var(--line);background:#232830;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.compare-box strong{width:100%;font-size:12px}
+.compare-box .judgment{display:flex;gap:6px;width:100%}
+.compare-box .judgment button{flex:1}
+
+/* ── ケース一覧・保存済みの行 ── */
+.row{display:flex;align-items:center;gap:8px;padding:7px 11px;border-bottom:1px solid #23272e;cursor:pointer;width:100%;text-align:left;background:none;border-radius:0;border-left:0;border-right:0;border-top:0}
+.row:hover{background:#232830}
+.row[aria-pressed=true]{background:#262b34;box-shadow:inset 3px 0 0 var(--acc)}
+.row .fam{font-size:9.5px;border-radius:3px;padding:1px 5px;background:#2b3039;color:#aeb6c2;flex:none;min-width:38px;text-align:center}
+.row .nm{flex:1;min-width:0;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .alg{font-family:var(--mono);font-size:9.5px;color:var(--fg3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:118px;flex:none}
+.row .st{font-size:9.5px;border-radius:9px;padding:1px 7px;flex:none}
+.row .st.done{background:#1d3327;color:#7fd39b}
+.row .st.todo{background:#33261d;color:#e0a86f}
+.row .dt{font-family:var(--mono);font-size:9.5px;color:var(--fg3);flex:none}
+.label-actions{display:flex;gap:6px;padding:0 10px 7px;flex-wrap:wrap}
+.label-actions button{font-size:11px;padding:4px 9px}
+.saved-empty{padding:18px 12px;color:var(--fg3);font-size:11px}
+
+/* ── チャート ── */
+.chart{flex:none;height:var(--ch);min-height:150px;background:var(--panel);display:flex;flex-direction:column}
+.chead{flex:none;display:flex;align-items:center;gap:5px;padding:6px 10px;border-bottom:1px solid var(--line);overflow-x:auto}
+.chead .chip{background:#262b34;border:1px solid var(--line);color:var(--fg2);border-radius:6px;padding:5px 10px;font-size:11.5px;white-space:nowrap;flex:none}
+.chead .div{width:1px;height:20px;background:var(--line);flex:none;margin:0 1px}
+.chead label{font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;white-space:nowrap;flex:none}
+.chead .t{font-size:11px;color:var(--fg2);flex:none}
+/* 配色のスウォッチ。色そのものを押す。選択中は枠と ✓ で分かる（色だけに意味を持たせない）。 */
+/* クレジット。見出しと全文の折りたたみ。長い行は折り返して横スクロールさせない。 */
+.credit-h{font-size:12.5px;margin:12px 0 4px;color:var(--fg)}
+.credit-license{margin:6px 0 10px}
+.credit-license summary{font-size:11.5px;color:var(--fg2);cursor:pointer}
+.credit-license pre{margin:6px 0 0;padding:8px 10px;background:#12161c;border:1px solid var(--line);border-radius:6px;
+  font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--fg2);white-space:pre-wrap;overflow-wrap:anywhere;max-height:44vh;overflow:auto}
+#dialog-content a{color:var(--acc);overflow-wrap:anywhere}
+#label-source button{padding:4px 9px;font-size:10.5px}
+.swatchrow{display:flex;align-items:center;gap:10px;margin:6px 0}
+.swatches{display:flex;gap:6px}
+.swatch{width:28px;height:28px;padding:0;border-radius:7px;border:1px solid #00000055;box-shadow:inset 0 0 0 1px #ffffff22;
+  display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;color:#12161c;text-shadow:0 0 2px #ffffffcc;cursor:pointer}
+.swatch.on{outline:2px solid var(--acc);outline-offset:2px}
+.swatch:disabled{opacity:.22;cursor:not-allowed}
+.swatch:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:none}
+.seg button{background:#20242c;border:0;border-radius:0;color:var(--fg2);padding:5px 11px;font-size:11px}
+.seg button.on{background:var(--acc);color:#08243f;font-weight:700}
+.casetag{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--fg2);max-width:230px;flex:none}
+.casetag b{color:var(--fg);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.label-current-status{font-size:10px;color:var(--fg3)}
+.adopt{background:var(--accR);border-color:var(--accR);color:#fff;border-radius:6px;padding:7px 15px;font-weight:700;font-size:12px;white-space:nowrap;flex:none}
+.adopt:hover:not(:disabled){background:#ef7743}
+.cscroll{flex:1;overflow:auto;position:relative;min-height:0}
+.cinner{position:relative;min-width:100%}
+.crow{display:flex;height:22px;border-bottom:1px solid #23272e}
+.crow.ruler{height:20px;position:sticky;top:0;z-index:6;background:var(--panel);border-bottom:1px solid var(--line)}
+.crow.symrow{height:28px}
+.crow.tagrow{height:24px}
+.crow.cube{height:22px;background:#191c21;border-bottom:1px solid #3a424e}
+.crow.grp{height:18px;background:#1a1d23}
+.crow.grp .ll{font-family:var(--font);font-size:9.5px;letter-spacing:.11em;color:var(--fg3);font-weight:700}
+.crow.dim .ll{opacity:.38}
+.ll{position:sticky;left:0;z-index:3;flex:none;width:var(--lx);background:var(--panel);font-size:10px;color:var(--fg2);font-family:var(--mono);padding-left:10px;white-space:nowrap;overflow:hidden;border-right:1px solid var(--line);display:flex;align-items:center}
+.tk{flex:none;position:relative}
+.crow.ruler .tk i{position:absolute;top:0;bottom:0;width:1px;background:#272c34}
+.crow.ruler .tk span{position:absolute;top:3px;font-size:9.5px;color:#5c6470;font-family:var(--mono);transform:translateX(-50%)}
+.playhead{position:absolute;top:0;bottom:0;width:2px;background:#ffd166;z-index:5;pointer-events:none}
+.score-cell{position:absolute;border:0;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 3px;color:#fff;cursor:pointer}
+.crow.symrow .score-cell{top:3px;height:22px;font-family:var(--mono);font-size:11.5px}
+.crow.tagrow .score-cell{top:2px;height:19px;font-size:10.5px;font-weight:600;white-space:nowrap}
+.crow.symrow .score-cell.R{background:#8a4527}
+.crow.symrow .score-cell.L{background:#255379}
+.crow.symrow .score-cell.BOTH{background:#4b3d74}
+.crow.symrow .score-cell.G{background:#4d535d}
+.crow.tagrow .score-cell.R{background:#4a2417;color:#ffb894}
+.crow.tagrow .score-cell.L{background:#15304b;color:#a7cdf2}
+.crow.tagrow .score-cell.BOTH{background:#332a4d;color:#c8b6f0}
+.crow.tagrow .score-cell.G{background:#2d323b;color:#b7bfca}
+.score-cell.selected{outline:2px solid #fff;outline-offset:-2px;z-index:4}
+.score-cell.changed{box-shadow:inset 0 0 0 2px #ffd166}
+.score-cell .wm{position:absolute;top:-1px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--wait)}
+.score-cell .pin{position:absolute;left:2px;top:-2px;font-size:8px;color:var(--pin)}
+.lane-bar{position:absolute;top:3px;bottom:3px;border-radius:2px;min-width:2px;border:0;padding:0;display:block}
+.lane-bar.R.stroke.role-driving{background:var(--r-600)}
+.lane-bar.L.stroke.role-driving{background:var(--l-600)}
+.lane-bar.R.stroke{background:var(--r-400)}
+.lane-bar.L.stroke{background:var(--l-400)}
+.lane-bar.stroke.role-supporting,.lane-bar.stroke.role-anchor{background:#5b636f}
+.lane-bar.stroke.role-repositioning{background:#7f6aa8}
+.lane-bar.recovery{background:repeating-linear-gradient(45deg,#4c545f 0 3px,#2c3038 3px 6px)}
+.lane-bar.R.recovery{background:repeating-linear-gradient(45deg,#7d4a33 0 3px,#33211a 3px 6px)}
+.lane-bar.L.recovery{background:repeating-linear-gradient(45deg,#2e5279 0 3px,#182735 3px 6px)}
+.lane-bar.regrip{background:#6d7583}
+.lane-bar.carry{background:#3f454e}
+.lane-bar.preparation,.lane-bar.startup{background:#454c57}
+.lane-bar.manual{background:repeating-linear-gradient(90deg,#5b4a78 0 4px,#332b45 4px 8px)}
+.lane-bar.cube{background:#5f6772}
+.lane-bar.cube.whole{background:#93a3b8}
+.lane-bar.wait{background:none;border:1.5px dashed var(--wait);cursor:pointer}
+.lane-bar.focused,.lane-bar:hover{outline:2px solid #fff;outline-offset:1px;z-index:4}
+.legend{flex:none;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:10.5px;color:var(--fg3);align-items:center;padding:5px 12px;border-top:1px solid var(--line)}
+.legend i{display:inline-block;width:16px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.swatch.drive-r{background:var(--r-600)}
+.swatch.drive-l{background:var(--l-600)}
+.swatch.role-supporting{background:#5b636f}
+.swatch.recovery{background:repeating-linear-gradient(45deg,#4c545f 0 3px,#2c3038 3px 6px)}
+.swatch.regrip{background:#6d7583}
+.swatch.wait{background:none;border:1.5px dashed var(--wait)}
+
+/* ── セルのメニュー ── */
+.cell-popup{position:fixed;z-index:1000;display:flex;flex-direction:column;min-width:210px;max-width:min(420px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow-y:auto;padding:7px;background:#22262e;border:1px solid #3c434e;border-radius:9px;box-shadow:0 14px 40px rgba(0,0,0,.55);gap:1px}
+.cell-popup button{border:0;background:transparent;border-radius:5px;text-align:left;padding:7px 9px;white-space:normal;flex-shrink:0;line-height:1.4;color:#ccd3dd;font-size:12px}
+.cell-popup button:hover:not(:disabled),.cell-popup button:focus-visible,.cell-popup button[aria-expanded=true]{background:#2e343e;color:#fff;outline:none}
+.cell-popup button:disabled{color:#5f6772;cursor:default;background:none}
+.cell-popup .mh{font-size:10px;letter-spacing:.06em;color:var(--fg3);padding:2px 7px 6px;line-height:1.5}
+.cell-popup .sep{height:1px;background:#343a44;margin:5px 2px;flex:none}
+.cell-popup .mf{font-size:10px;color:var(--fg3);padding:5px 7px 1px;line-height:1.5}
+
+/* ── フッター ── */
+footer{flex:none;display:flex;align-items:center;gap:12px;padding:4px 12px;background:var(--panel);border-top:1px solid var(--line);font-size:10.5px;color:var(--fg3);overflow-x:auto;white-space:nowrap}
+footer button{font-size:10px;padding:2px 8px}
+footer #save-status.error{color:#ff9f93}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#6fbf7e;margin-right:5px}
+footer .keys{margin-left:auto}
+
+/* ── 全指使い一覧（all_actions.css は明色のため下地を白にする） ── */
+/* all_actions.css の margin:auto が縦フレックスの伸長を止めるので幅を戻す。all_actions.css は変更しない。 */
+#all-workspace{flex:1;min-height:0;overflow:auto;background:#f5f8fc;color:#15233b;width:100%}
+#all-workspace input,#all-workspace select{background:#fff;color:#15233b;border-color:#cbd8e6}
+#all-workspace button{background:#fff;color:#15233b;border-color:#cbd8e6}
+
+/* ── 保存済みの詳細（パネル内） ── */
+.saved-detail{border-top:1px solid var(--line);padding:10px;font-size:11px;color:var(--fg2)}
+.saved-detail h3{margin:0 0 6px;font-size:13px;color:var(--fg)}
+.saved-detail h4{margin:10px 0 4px;font-size:11px;color:var(--fg)}
+.saved-detail p{margin:5px 0;overflow-wrap:anywhere}
+.saved-detail button{font-size:10.5px;padding:3px 8px;margin:2px 3px 2px 0}
+.saved-detail input{font-size:11px;padding:4px 6px;width:100%}
+.saved-detail label{display:block;margin:6px 0}
+.saved-detail pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:160px;overflow:auto;font-size:10px;background:#15181d;padding:6px;border-radius:5px}
+.saved-detail table{width:100%;border-collapse:collapse;font-size:10px}
+.saved-detail th,.saved-detail td{padding:4px;border-bottom:1px solid #23272e;text-align:left}
+.saved-detail ul{margin:4px 0;padding-left:18px}
+#saved-stage{height:200px;position:relative;margin-top:8px}
+#saved-stage canvas{max-width:100%}
+#saved-play-controls{display:flex;gap:6px;align-items:center;padding:6px 0}
+#saved-seek{flex:1;min-width:50px}
+
+/* ── ダイアログ ── */
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--fg);max-width:640px;width:calc(100vw - 32px);padding:0}
+dialog::backdrop{background:#0009}
+.dialog-heading{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.dialog-heading h2{margin:0;font-size:15px}
+#dialog-content{padding:14px 16px;max-height:70vh;overflow:auto}
+#dialog-content p{margin:7px 0;line-height:1.6;font-size:12px}
+#dialog-content button{margin:4px 6px 4px 0}
+#dialog-content input[type=text]{width:100%;margin-top:5px}
+#dialog-content code{font-family:var(--mono);font-size:11px;background:#15181d;padding:1px 4px;border-radius:3px}
+.error-detail{color:#ff9f93}
+
+/* ── スマホ（UI_PC.md §13 / sample/m1-scroll.html） ── */
+.hbtn .sf{display:none}
+.mfoot{display:none;flex:none;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.mfoot .scrubrow{padding:2px 10px 0;line-height:0}
+.mfoot .scrubrow input{width:100%;margin:0;height:14px}
+.mfoot .rowA{display:flex;align-items:center;gap:5px;padding:1px 8px 4px}
+.mfoot .rowA .list{height:32px;padding:0 13px;font-size:12px;flex:none;border-radius:7px}
+.mfoot .rowA .go{flex:1;height:32px;font-size:13px;border-radius:7px;padding:0;min-width:0;background:var(--acc);border:0;color:#08243f;font-weight:700}
+.mfoot .speeds{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex:none;height:32px}
+.mfoot .speeds button{background:#20242c;border:0;border-radius:0;color:var(--fg2);padding:0 7px;font-size:10.5px;height:100%}
+.mfoot .rowC .play{background:#2f7cc4;border-color:#2f7cc4;color:#fff;font-size:15px}
+.mfoot .speeds button.active{background:var(--acc);color:#08243f;font-weight:700}
+.mfoot .rowC{display:flex;align-items:center;gap:5px;padding:0 8px 5px}
+.mfoot .rowC button{flex:1;height:36px;font-size:16px;font-family:var(--mono);border-radius:7px;padding:0}
+.mfoot .rowC .adopt{flex:1.35;background:var(--accR);border-color:var(--accR);color:#fff;font-weight:700;font-size:13px;font-family:var(--font)}
+
+/* 幅の狭いPCウィンドウでは、開始ホールドの「自動」をスマホと同じ「自」に縮める。 */
+@media(min-width:701px) and (max-width:1100px){
+  .top .hbtn{padding:3px 5px;min-width:26px}
+  .hbtn .lf{display:none}.hbtn .sf{display:inline}
+  .top .initial select{max-width:110px}
+}
+@media(max-width:700px){
+  body{font-size:12.5px}
+  .top{padding:6px 10px;gap:6px;flex-wrap:wrap}
+  .top h1,.top .initial,.top .sr-label{display:none}
+  .top form{display:contents}
+  .top #alg{order:1;flex:1 1 120px;min-width:0}
+  .top #paste-alg{order:2}
+  .top #open-files{order:3}
+  .top #settings{order:4}
+  .top .holds{order:5;flex-direction:row;gap:8px;width:100%;flex-basis:100%}
+  .top .holdrow{flex:1}
+  .top .hbtn{flex:1;min-width:0;padding:4px 0;font-size:10.5px}
+  .hbtn .lf{display:none}.hbtn .sf{display:inline}
+  .top #search-button{display:none}
+  .message:not(.error){display:none}
+  .message{white-space:normal}
+  .tabs{display:none}
+  .upper{display:block;flex:none}
+  html,body{height:auto;min-height:100%}
+  body{display:block;overflow:auto}
+  #search-workspace{display:block}
+  .stagewrap{height:40vh;min-height:230px}
+  .stage .tools{display:none}
+  .stage{height:100%}
+  .hud .sym{font-size:23px;left:10px;top:9px}
+  .hud .sub{left:11px;top:40px;font-size:10.5px;max-width:70%}
+  .transport,.asset-status,.vsplit,.hsplit,.rail{display:none!important}
+  #search-workspace{flex:1;min-height:0}
+  .chart{flex:none;height:auto;min-height:0}
+  .cscroll{max-height:48vh}
+  .chead{padding:5px 7px;gap:4px}
+  .chead #confirm-path,.chead #label-back{display:none}
+  .chead .chip{padding:5px 8px}
+  .chead .div{margin:0}
+  .cinner{--lx:46px}
+  .crow{height:17px}
+  .crow.symrow{height:23px}
+  .crow.tagrow{height:20px}
+  .crow.cube{height:18px}
+  .crow.grp{height:14px}
+  .crow.symrow .score-cell{top:2px;height:19px;font-size:11px}
+  .crow.tagrow .score-cell{top:1px;height:17px;font-size:10px}
+  .ll{font-size:9px;padding-left:5px}
+  .legend{font-size:9.5px;padding:3px 8px;gap:2px 9px}
+  .panel{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;height:82vh;z-index:41;border-left:0;border-top:1px solid var(--line);border-radius:14px 14px 0 0}
+  body:not(.panel-open) .panel{display:none}
+  body.panel-open::after{content:"";position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40}
+  /* スマホではタブ段をシートの最下段に置く。親指が届く位置で切り替えるため（PCは従来どおり上）。 */
+  .panel>.pfilter{order:1}
+  .panel>.pbody{order:2}
+  .panel>.pfoot{order:3}
+  .panel>.ptabs{order:4;border-bottom:0;border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px));background:var(--panel)}
+  .ptabs button{min-height:40px;padding:8px 11px;font-size:12.5px;border-bottom:0;border-top:2px solid transparent}
+  .ptabs button[aria-selected=true]{border-bottom-color:transparent;border-top-color:var(--acc)}
+  .ptabs .collapse{font-size:19px;min-height:40px;padding:4px 12px}
+  .mfoot{display:block;position:sticky;bottom:0;z-index:30}
+  footer{display:none}
+  footer .keys{display:none}
+  .cell-popup{max-width:min(300px,calc(100vw - 16px));max-height:calc(100vh - 140px)}
+  .cell-popup button{padding:8px 9px;font-size:12.5px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* ── HUD の中身と候補行の細部（追補） ── */
+.hud .sub .pos{font-family:var(--mono);color:var(--fg2)}
+.hud .sub .mono{font-family:var(--mono)}
+.finger-tag{display:inline-flex;align-items:center;border-radius:3px;padding:1px 6px;font-size:11.5px;font-weight:600;line-height:1.7;white-space:nowrap;border:1px solid transparent}
+.finger-tag.R{background:#4a2417;color:#ffb894;border-color:#7a4028}
+.finger-tag.L{background:#15304b;color:#a7cdf2;border-color:#2b5580}
+.finger-tag.BOTH{background:#332a4d;color:#c8b6f0;border-color:#4d3f73}
+.waitnote{color:#ff9a8f}
+.pinnote{color:var(--pin)}
+.candidate-bottom .choose.active{background:var(--acc);border-color:var(--acc);color:#08243f;font-weight:700}
+.compare-box button.active{background:var(--acc);border-color:var(--acc);color:#08243f;font-weight:700}
+.row[disabled]{opacity:.5;cursor:default}
+/* 指レーンの wait 事象はキューブ行の「回転が止まっていた区間」と同じ待ちなので、レーンには描かない（app.js で除外）。 */
+
+/* 保存・共有ダイアログ */
+.save-actions{display:flex;flex-wrap:wrap;align-items:center;gap:0}
+.share-box{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.share-box textarea{display:block;width:100%;box-sizing:border-box;margin:6px 0 2px;padding:8px;font:12px/1.55 var(--font);color:var(--fg);background:#15181d;border:1px solid var(--line);border-radius:6px;resize:vertical;overflow-wrap:anywhere;word-break:break-all}
+.share-box .share-error{color:#ffc3b6}
+/* スマホの探索ボタン：探索中は押せず、ゆっくり明滅させる */
+.mfoot .rowA .go:disabled{opacity:.6;cursor:default}
+.mfoot .rowA .go.busy{opacity:1;background:#2f6ea8;color:#e8f3ff;animation:go-busy 1.1s ease-in-out infinite alternate}
+@keyframes go-busy{from{filter:brightness(.85)}to{filter:brightness(1.2)}}
+@media(max-width:700px){.message.notice{display:block;white-space:normal}}
+@media(prefers-reduced-motion:reduce){.mfoot .rowA .go.busy{animation:none}}
+
+/* Reconモード（β） */
+body:not(.recon) .recon-only{display:none!important}
+body.recon .plain-only{display:none!important}
+.top #recon-add{flex:1;min-width:0;padding:8px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){.top #recon-add{order:1;flex:1 1 120px}}
+.crow.segrow{height:20px;background:#1a1f27}
+.crow.segrow .tk .seg{position:absolute;top:2px;height:16px;line-height:16px;font-size:10px;color:#cfe3f6;background:#243447;border-left:2px solid var(--acc);border-radius:0 4px 4px 0;padding:0 6px;box-sizing:border-box;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cinner .segline{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed #6ea8e0;z-index:4;pointer-events:none;opacity:.7}
+.hud .segnote{font-size:11px;color:#cfe3f6;background:#243447;padding:1px 6px;border-radius:4px;margin-left:4px}
+#dialog-content label.check{display:flex;align-items:center;gap:6px;font-size:12.5px}
+#dialog-content textarea{width:100%;box-sizing:border-box;margin-top:5px;padding:8px;font:12px/1.55 var(--mono);color:var(--fg);background:#15181d;border:1px solid var(--line);border-radius:6px;resize:vertical}
+#dialog-content label.field{display:block;margin:8px 0 4px;font-size:12px}
+#recon-status{margin-left:8px}
+.message::after{content:"×";float:right;margin-left:12px;opacity:.6}
+
+/* Locale controls keep autonyms visible in both languages. */
+.locale-control{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.locale-control select{max-width:100px}
+#dialog-content [data-locale-select]{margin-left:8px}
+html[lang="en"] #dialog-content{overflow-wrap:anywhere}
+html[lang="en"] .save-actions{flex-wrap:wrap}
+html[lang="en"] .top .initial{white-space:normal;flex-wrap:wrap;max-width:150px;flex:0 1 150px;row-gap:3px}
+html[lang="en"] .top .initial select{width:100%;max-width:100%}
+@media(min-width:701px) and (max-width:1150px){html[lang="en"] .top form{flex-wrap:wrap}html[lang="en"] .top #alg{flex-basis:calc(100% - 100px)}html[lang="en"] .top #search-button{padding-inline:12px}html[lang="en"] .top .initial{max-width:180px;flex-basis:180px}}
+
+/* Low-height desktop windows must retain a reachable stage and controls. */
+@media(min-width:701px) and (max-height:650px){
+  html,body{height:auto;min-height:100%}
+  body{overflow:auto}
+  .top{flex-wrap:wrap}.top form{flex-wrap:wrap}
+  #search-workspace{flex:none}
+  .upper{flex:none;min-height:300px;height:50vh}
+  .stagewrap{min-height:300px}
+  .chart{flex:none;height:var(--ch);min-height:220px}
+  footer{flex:none}
+}
+@media(max-width:700px){body.panel-open{overflow:hidden}}
+
+.history-controls{display:inline-flex;flex:none;gap:0}
+.chead .history-controls .chip{display:flex;align-items:center;gap:4px}
+.history-controls .chip:first-child{border-radius:6px 0 0 6px}
+.history-controls .chip:last-child{border-radius:0 6px 6px 0;border-left:0}
+.history-controls svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:700px){
+ .history-controls .history-label{display:none}
+ .chead .history-controls .chip{width:26px;padding:5px 0;justify-content:center}
+}

@@ -1,0 +1,5 @@
+/* 保存済みは右パネルの中に行形式で出し、詳細は選んだ行の下に開く。見た目は style.css の .row / .saved-detail。 */
+#saved-workspace{min-width:0}
+#saved-workspace #saved-list{min-width:0}
+#saved-workspace .saved-empty{padding:18px 12px;font-size:11px}
+#saved-detail[hidden]{display:none}

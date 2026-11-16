@@ -1,0 +1,6 @@
+/* ケース一覧は右パネルの中に行形式で出す。行の見た目は style.css の .row を共有する。 */
+#label-workspace{min-width:0}
+#label-workspace .label-list{display:block;min-width:0}
+#label-workspace .label-list .row .nm{font-size:11.5px}
+#label-workspace .label-list .row[disabled]{opacity:.5;cursor:default}
+#label-workspace .saved-empty{padding:18px 12px;font-size:11px}

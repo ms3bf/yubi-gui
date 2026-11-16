@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "duration": 0.6,
+  "entries": [
+    {
+      "side": "R",
+      "move": "x",
+      "from_hold": "F",
+      "to_hold": "U",
+      "file": "hand_library/product/dist/clips/c49edc5ac4a00ca4.json",
+      "sha256": "170bf488ac8800d3903995067954e8aa9894fecadd85587c4b0c31a701a3b264",
+      "duration": 1.0,
+      "source_id": "R__x_R_HAND_ROTATE__FROM_F"
+    },
+    {
+      "side": "R",
+      "move": "x",
+      "from_hold": "U",
+      "to_hold": "B_CW",
+      "file": "hand_library/product/dist/clips/174252d2955bce9c.json",
+      "sha256": "83ff01aa620a1bd97bcc9d7cc9cb80f8305cd1368384e0b1b97aa61052c8b150",
+      "duration": 1.0,
+      "source_id": "R__x_R_HAND_ROTATE__FROM_U"
+    },
+    {
+      "side": "R",
+      "move": "x",
+      "from_hold": "D",
+      "to_hold": "F",
+      "file": "hand_library/product/dist/clips/18ffb7849d797180.json",
+      "sha256": "699cad1b7c3977905b3e2ee4951424a812f0aba4be837dba3b8a5e638af45a09",
+      "duration": 1.0,
+      "source_id": "R__x_R_HAND_ROTATE__FROM_D"
+    },
+    {
+      "side": "R",
+      "move": "x",
+      "from_hold": "B_CCW",
+      "to_hold": "D",
+      "file": "hand_library/product/dist/clips/4f4601276f98d8cd.json",
+      "sha256": "cb108953137f2b6ecf7305597b19118ac522b457ba89763c3935fc7a10aba8a4",
+      "duration": 1.0,
+      "source_id": "R__x_R_HAND_ROTATE__FROM_B_CCW"
+    },
+    {
+      "side": "R",
+      "move": "x'",
+      "from_hold": "F",
+      "to_hold": "D",
+      "file": "hand_library/product/dist/clips/2cc6fc95131ff1cb.json",
+      "sha256": "092122b4908954641d2cca94a50325a0fc685687a4ed8dc06af388d827b914f7",
+      "duration": 1.0,
+      "source_id": "R__x_PRIME_R_HAND_ROTATE__FROM_F"
+    },
+    {
+      "side": "R",
+      "move": "x'",
+      "from_hold": "U",
+      "to_hold": "F",
+      "file": "hand_library/product/dist/clips/0e24355246ec5897.json",
+      "sha256": "24f04bd2cc32de4b166ab214e9759520af85d6cb6981958f3ce84a5dbdb56262",
+      "duration": 1.0,
+      "source_id": "R__x_PRIME_R_HAND_ROTATE__FROM_U"
+    },
+    {
+      "side": "R",
+      "move": "x'",
+      "from_hold": "D",
+      "to_hold": "B_CCW",
+      "file": "hand_library/product/dist/clips/2c97c70f2539a9c8.json",
+      "sha256": "bda0a034d4dfa112dc0fafe04c75c82d4aebf467a57c20698dc408b9951a1948",
+      "duration": 1.0,
+      "source_id": "R__x_PRIME_R_HAND_ROTATE__FROM_D"
+    },
+    {
+      "side": "R",
+      "move": "x'",
+      "from_hold": "B_CW",
+      "to_hold": "U",
+      "file": "hand_library/product/dist/clips/7971224cc2a060db.json",
+      "sha256": "37d4f8625e292f2cd980a91e6d7e94ee3d02ec9d1faf6502c1b624a0c6c3c18b",
+      "duration": 1.0,
+      "source_id": "R__x_PRIME_R_HAND_ROTATE__FROM_B_CW"
+    },
+    {
+      "side": "L",
+      "move": "x",
+      "from_hold": "F",
+      "to_hold": "U",
+      "file": "hand_library/product/dist/clips/9581f64ef15fffe3.json",
+      "sha256": "54dd7a9c8df6aa52f30e1399f2e9b50297555cada2600e03907411285ac1a1cb",
+      "duration": 1.0,
+      "source_id": "L__x_R_HAND_ROTATE__FROM_F"
+    },
+    {
+      "side": "L",
+      "move": "x",
+      "from_hold": "U",
+      "to_hold": "B_CW",
+      "file": "hand_library/product/dist/clips/4870bb4b3dce0bef.json",
+      "sha256": "44d7687a4256e0545865c7ff7b707ca2127fa6251a5efd673d8ecec12dc25478",
+      "duration": 1.0,
+      "source_id": "L__x_R_HAND_ROTATE__FROM_U"
+    },
+    {
+      "side": "L",
+      "move": "x",
+      "from_hold": "D",
+      "to_hold": "F",
+      "file": "hand_library/product/dist/clips/ee51b433d92af1da.json",
+      "sha256": "9b5e1a0be8261c589bf02af282bb93dfdc7f56cbfac42a0a77db49a8d07d04f4",
+      "duration": 1.0,
+      "source_id": "L__x_R_HAND_ROTATE__FROM_D"
+    },
+    {
+      "side": "L",
+      "move": "x",
+      "from_hold": "B_CCW",
+      "to_hold": "D",
+      "file": "hand_library/product/dist/clips/8d5c56a1ae5e6e36.json",
+      "sha256": "e1de00e4c76c95738c7f4fdf2f4956218c7bbe4b5c8121a16d3373369fa81903",
+      "duration": 1.0,
+      "source_id": "L__x_R_HAND_ROTATE__FROM_B_CCW"
+    },
+    {
+      "side": "L",
+      "move": "x'",
+      "from_hold": "F",
+      "to_hold": "D",
+      "file": "hand_library/product/dist/clips/77898c4a80584e84.json",
+      "sha256": "8d50fc1a517e861524c2d6546663c9c366dd4a9b39c97720c035ec32439558d6",
+      "duration": 1.0,
+      "source_id": "L__x_PRIME_R_HAND_ROTATE__FROM_F"
+    },
+    {
+      "side": "L",
+      "move": "x'",
+      "from_hold": "U",
+      "to_hold": "F",
+      "file": "hand_library/product/dist/clips/2d76a21f229c297d.json",
+      "sha256": "c689186b47969561f216cd59aac4bae85fc2a1d20ed3c1e9e29ec6ea3d3fd2e0",
+      "duration": 1.0,
+      "source_id": "L__x_PRIME_R_HAND_ROTATE__FROM_U"
+    },
+    {
+      "side": "L",
+      "move": "x'",
+      "from_hold": "D",
+      "to_hold": "B_CCW",
+      "file": "hand_library/product/dist/clips/09eba7727722bae7.json",
+      "sha256": "4fc7f83add8c0112e3fc609137e0b2be79a4d9cae4a9cc3c48fa104046e7afd9",
+      "duration": 1.0,
+      "source_id": "L__x_PRIME_R_HAND_ROTATE__FROM_D"
+    },
+    {
+      "side": "L",
+      "move": "x'",
+      "from_hold": "B_CW",
+      "to_hold": "U",
+      "file": "hand_library/product/dist/clips/f94bbeab4cc14bc8.json",
+      "sha256": "bf02eba9ec44be092ca2c02d77dbbc9f1695e2f7ea6453c7c4284a595beb180f",
+      "duration": 1.0,
+      "source_id": "L__x_PRIME_R_HAND_ROTATE__FROM_B_CW"
+    }
+  ]
+}

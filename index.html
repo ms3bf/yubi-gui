@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <!-- 探索エンジンの既定。auto は WASM を試してから /api/* へ、wasm はブラウザ内のみ、http は常にサーバ。
+       ?engine= と ⚙ の設定（localStorage）はこれより優先される。静的サイト版は tools/build_site.py が wasm に書き換える。 -->
+  <meta name="yubi-engine" content="wasm">
+  <title>YUBI GUI — 指遣いワークスペース</title>
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/all_actions.css"><link rel="stylesheet" href="/saved_paths.css"><link rel="stylesheet" href="/label_tasks.css">
+  <script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+</head>
+<body>
+<a class="skip" href="#score">タイムラインへ移動</a>
+<header class="top">
+  <h1><svg viewBox="0 0 32 36" aria-hidden="true"><path d="M16 1 30 9v18l-14 8L2 27V9Z M2 9l14 8 14-8M16 17v18M9 5l14 8v18M23 5 9 13v18M2 18l14 8 14-8"/></svg>YUBI GUI</h1>
+  <button class="icon-button plain-only" id="paste-alg" title="クリップボードから貼り付けて探索" aria-label="クリップボードから貼り付けて探索"><svg viewBox="0 0 24 24"><path d="M9 4h6v3H9Zm-1 1H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2M8 12h8M8 16h5"/></svg></button>
+  <form id="algorithm-form">
+    <button type="button" class="primary recon-only" id="recon-add">スクランブル・解法を追加</button><label class="sr-label plain-only" for="alg">手順入力</label><input class="plain-only" id="alg" autocomplete="off" spellcheck="false" value="R U R' U' F R U R' U' F'" aria-describedby="mode-note">
+    <div class="holds" id="start-holds">
+      <div class="holdrow L" data-hand="L" role="group" aria-label="左手"><span aria-hidden="true">左</span><button type="button" class="hbtn on" data-hold="auto" aria-pressed="true"><span class="lf">自動</span><span class="sf">自</span></button><button type="button" class="hbtn" data-hold="B_CW" aria-pressed="false">B⟳</button><button type="button" class="hbtn" data-hold="U" aria-pressed="false">U</button><button type="button" class="hbtn" data-hold="F" aria-pressed="false">F</button><button type="button" class="hbtn" data-hold="D" aria-pressed="false">D</button><button type="button" class="hbtn" data-hold="B_CCW" aria-pressed="false">B⟲</button></div>
+      <div class="holdrow R" data-hand="R" role="group" aria-label="右手"><span aria-hidden="true">右</span><button type="button" class="hbtn on" data-hold="auto" aria-pressed="true"><span class="lf">自動</span><span class="sf">自</span></button><button type="button" class="hbtn" data-hold="B_CW" aria-pressed="false">B⟳</button><button type="button" class="hbtn" data-hold="U" aria-pressed="false">U</button><button type="button" class="hbtn" data-hold="F" aria-pressed="false">F</button><button type="button" class="hbtn" data-hold="D" aria-pressed="false">D</button><button type="button" class="hbtn" data-hold="B_CCW" aria-pressed="false">B⟲</button></div>
+    </div>
+    <label class="initial plain-only" for="initial-state">直前の終了状態<select id="initial-state"><option value="none">なし</option><option value="previous">前の候補を引き継ぐ</option></select></label>
+    <button class="primary" type="submit" id="search-button" disabled>探索</button>
+  </form>
+  <button class="icon-button" id="open-files" title="ファイルを読み込む" aria-label="ファイルを読み込む"><svg viewBox="0 0 24 24"><path d="M3 7V5h6l2 2h10v13H3Zm0 3h18"/></svg></button>
+  <button class="icon-button" id="settings" title="表示の設定" aria-label="表示の設定"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2.5"/><path d="M18 12h2M16.24 16.24l1.42 1.42M12 18v2M7.76 16.24l-1.42 1.42M6 12H4M7.76 7.76 6.34 6.34M12 6V4M16.24 7.76l1.42-1.42"/></svg></button>
+</header>
+<nav class="tabs" role="tablist" aria-label="ワークスペース">
+<button id="tab-search" role="tab" aria-selected="true" aria-controls="search-workspace" data-workspace-tab="search">手順の探索</button>
+<button id="tab-all" role="tab" aria-selected="false" aria-controls="all-workspace" tabindex="-1" data-workspace-tab="all">全指使い一覧 <span>指レーン</span></button>
+</nav>
+<div id="message" class="message" role="status" hidden></div>
+<div id="search-workspace" tabindex="-1" role="tabpanel" aria-labelledby="tab-search">
+  <div class="upper">
+    <section class="stagewrap" aria-label="全体の3D再生">
+      <div class="stage" id="main-stage">
+        <span class="stage-label" id="main-stage-label">3Dビュー（全体再生）</span>
+        <div class="hud">
+          <div class="sym" id="hud-sym">—</div>
+          <div class="sub" id="hud-sub"></div>
+          <div class="hudholds"><div class="hb L">左<b id="hud-hold-L">—</b></div><div class="hb R">右<b id="hud-hold-R">—</b></div></div>
+        </div>
+        <div class="tools"><select class="view-select" id="main-view" aria-label="全体3Dの視点"><option value="right">右前視点</option><option value="front">正面</option><option value="left">左前視点</option><option value="top">上面</option></select></div>
+        <div class="stage-loading">3D素材を読み込み中…</div>
+      </div>
+      <div class="transport">
+        <input type="range" id="scrubber" min="0" max="1" step="0.001" value="0" aria-label="全体の再生位置">
+        <div class="trow">
+          <span class="steps" id="main-steps"><button data-act="first" title="最初の手" aria-label="最初の手"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6.5v11M12.5 6.5 7.5 12l5 5.5M18.5 6.5 13.5 12l5 5.5"/></svg></button><button data-act="prev" title="前の手" aria-label="前の手"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6 9.5 12 15 18"/></svg></button><button data-act="playtoggle" id="main-play" class="play" title="再生／停止 (Space)" aria-label="再生／一時停止"><svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6.5 18 12l-9 5.5z"/></svg><svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M9.5 6.5v11M14.5 6.5v11"/></svg></button><button data-act="next" title="次の手を再生 (→)" aria-label="次の手を再生"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6 14.5 12 9 18"/></svg></button><button data-act="last" title="最後の手" aria-label="最後の手"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6.5 10.5 12l-5 5.5M11.5 6.5 16.5 12l-5 5.5M18.5 6.5v11"/></svg></button></span>
+          <span class="t" id="current-move">—</span>
+          <span class="t" id="main-time">0.00 / 0.00 <small>相対時間</small></span>
+          <span class="speed-buttons" id="main-speeds"><button data-speed="0.25">0.25×</button><button data-speed="0.5">0.5×</button><button data-speed="1" class="active">1×</button><button data-speed="2" class="plain-only">2×</button><button data-speed="real" class="recon-only">実時間</button></span>
+        </div>
+      </div>
+      <p id="asset-status" class="asset-status">既存の Hand Library を読み込みます</p>
+    </section>
+    <div class="vsplit" id="vsplit" title="ドラッグで幅を変える" role="separator" aria-orientation="vertical"></div>
+    <aside class="panel" id="panel" aria-label="候補とケース一覧">
+      <div class="ptabs" role="tablist" aria-label="パネル">
+        <button id="tab-cand" role="tab" aria-selected="true" aria-controls="cand-workspace" data-panel-tab="cand">候補<i id="cand-tab-count"></i></button>
+        <button id="tab-label" role="tab" aria-selected="false" aria-controls="label-workspace" tabindex="-1" data-panel-tab="label">ケース一覧<i id="label-tab-count">…</i></button>
+        <button id="tab-saved" role="tab" aria-selected="false" aria-controls="saved-workspace" tabindex="-1" data-panel-tab="saved">保存済み<i id="saved-tab-count"></i></button>
+        <button class="collapse" id="panel-collapse" title="パネルを閉じる（P）" aria-label="パネルを閉じる">×</button>
+      </div>
+      <div class="pfilter" id="pfilter-cand">
+        <label><input type="checkbox" id="diff-only" checked>1位と違う指だけ濃く</label>
+        <span class="spacer"></span>
+      </div>
+      <div class="pfilter" id="pfilter-label" hidden>
+        <div class="seg" id="label-source" aria-label="ケースの出どころ"><button type="button" data-source="registered" class="on">登録ケース</button><button type="button" data-source="tribox">tribox手順票</button></div>
+        <select id="label-family" aria-label="種類"><option value="f2l">F2L</option><option value="oll">OLL</option><option value="pll">PLL</option><option value="edge">エッジ（3style）</option><option value="corner">コーナー（3style）</option><option value="parity">パリティ</option><option value="">すべて</option></select>
+        <input id="label-query" type="search" placeholder="名前・手順・ケースID" aria-label="絞り込み">
+      </div>
+      <div class="pfilter" id="pfilter-saved" hidden>
+        <input id="saved-query" type="search" placeholder="名前・手順で絞り込み" aria-label="保存済みの絞り込み">
+        <button id="saved-import">JSONを読み込む</button><input type="file" id="saved-import-file" accept=".json" hidden>
+      </div>
+      <div class="pbody" id="pbody">
+        <div id="cand-workspace" role="tabpanel" aria-labelledby="tab-cand">
+          <div id="candidates"></div>
+        </div>
+        <section id="label-workspace" role="tabpanel" aria-labelledby="tab-label" hidden>
+          <p id="label-status" role="status" class="pnote"></p>
+          <div id="label-list" class="label-list"></div>
+        </section>
+        <section id="saved-workspace" role="tabpanel" aria-labelledby="tab-saved" hidden>
+          <p id="saved-status" role="status" class="pnote"></p>
+          <div id="saved-list"></div>
+          <section id="saved-detail" class="saved-detail" hidden></section>
+        </section>
+      </div>
+      <div class="pfoot">
+        <span id="pfoot-cand"><span id="candidate-heading">候補</span></span>
+        <span id="pfoot-label" hidden><span id="label-count">読み込み中…</span><span id="label-current-note"></span></span>
+        <span id="pfoot-saved" hidden><span id="saved-count"></span></span>
+      </div>
+    </aside>
+    <div class="rail" id="rail" hidden><button id="panel-expand" title="パネルを開く（P）" aria-label="パネルを開く">«</button><span class="vt">一覧を開く</span></div>
+  </div>
+  <div class="hsplit" id="hsplit" title="ドラッグで高さを変える" role="separator" aria-orientation="horizontal"></div>
+  <section class="chart" id="score" tabindex="-1">
+    <div class="chead">
+      <span class="history-controls"><button id="undo" class="chip" disabled title="元に戻す (Ctrl/Cmd+Z)" aria-label="元に戻す"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 3 10l5 5M3 10h11a6 6 0 0 1 0 12"/></svg><span class="history-label">戻す</span></button><button id="redo" class="chip" disabled title="やり直す (Ctrl/Cmd+Shift+Z)" aria-label="やり直す"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 5 5 5-5 5m5-5H10a6 6 0 0 0 0 12"/></svg><span class="history-label">やり直す</span></button></span>
+      <button id="clear-pins" class="chip" title="固定と前半固定を解除して再探索します。">固定を外す</button>
+      <span class="div"></span>
+      <div class="seg" id="scale-seg" aria-label="尺度と再生の間合い"><button type="button" data-mode="time">時間</button><button type="button" data-mode="even" class="on">等間隔</button></div>
+      <div class="seg" id="zoom-seg"><button type="button" data-z="-1" aria-label="縮小">−</button><button type="button" data-z="1" aria-label="拡大">＋</button></div>
+      <span class="spacer"></span>
+      <button id="label-back" class="chip">一覧</button>
+      <span id="label-current" hidden aria-hidden="true"><b id="label-current-name">自由入力の手順</b><span id="label-current-status"></span></span>
+      <button class="primary adopt" id="confirm-path" title="この指使いを保存・共有する">保存・共有<kbd>Enter</kbd></button>
+    </div>
+    <div class="cscroll" id="timeline"></div>
+    <div class="legend"><span><i class="swatch drive-r"></i>駆動(右)</span><span><i class="swatch drive-l"></i>駆動(左)</span><span><i class="swatch role-supporting"></i>支持・固定</span><span><i class="swatch recovery"></i>回復</span><span><i class="swatch regrip"></i>持ち替え</span><span><i class="swatch wait"></i>回転が止まっていた区間</span><span class="muted">セルを押すと編集メニュー</span></div>
+  </section>
+</div>
+<section id="all-workspace" tabindex="-1" role="tabpanel" aria-labelledby="tab-all" hidden>
+<div class="all-heading"><div><p class="all-eyebrow">YUBI GUI · ACTION ATLAS</p><h2>全指使いの使用指と拘束</h2><p>開始ホールドごとの合法配置を、指レーンで見比べる。</p></div><strong id="all-count" aria-live="polite">読み込み前</strong></div>
+<div class="all-toolbar">
+<label>検索<input id="all-query" type="search" placeholder="action_id・技術名で検索"></label>
+<label>手<select id="all-hand"><option value="">すべての手</option><option value="R">右手</option><option value="L">左手</option><option value="BOTH">両手</option></select></label>
+<label>回転<select id="all-move"><option value="">すべて（持ち替え含む）</option></select></label>
+<label>開始ホールド<select id="all-hold"><option value="">すべて</option><option>F</option><option>U</option><option>D</option><option>B_CW</option><option>B_CCW</option></select></label>
+<label>表示尺度<select id="all-scale"><option value="local">各動作に合わせる</option><option value="shared">共通の時間軸</option></select></label>
+<button id="all-reset">絞り込み解除</button><button id="all-download" disabled>表示中のデータを保存</button>
+</div>
+<div class="all-legend"><span class="atlas-driving">駆動</span><span class="atlas-supporting">支持</span><span class="atlas-repositioning">退避・調整</span><span class="atlas-anchor">手首の固定</span><span class="atlas-recovery">回復</span><span class="atlas-free">自由</span></div>
+<p class="all-note">単独動作の開始姿勢を準備済みとして表示。起動前の空白は省略し、最後のホーム復帰を含みます。値はモデルの相対時間です。支持・固定も探索上の拘束ですが、回す指ではありません。全体回転は反対の手（開始 F）のレーンも表示します。</p>
+<p id="all-status" role="status"></p><button id="all-retry" hidden>再読み込み</button>
+<div id="all-grid" class="all-grid"></div>
+</section>
+<div class="mfoot">
+  <div class="scrubrow"><input type="range" id="m-scrub" min="0" max="1" step="1" value="0" aria-label="手の位置"></div>
+  <div class="rowA"><button class="list" data-act="panel">一覧</button><button class="go" data-act="search">探索</button><span class="speeds" id="m-speeds"><button data-speed="0.5">0.5×</button><button data-speed="1" class="active">1×</button><button data-speed="2" class="plain-only">2×</button><button data-speed="real" class="recon-only">実時間</button></span></div>
+  <div class="rowC"><button data-act="first" title="最初の手" aria-label="最初の手"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6.5v11M12.5 6.5 7.5 12l5 5.5M18.5 6.5 13.5 12l5 5.5"/></svg></button><button data-act="prev" title="前の手" aria-label="前の手"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6 9.5 12 15 18"/></svg></button><button data-act="playtoggle" id="m-play" class="play" title="再生／停止" aria-label="再生／一時停止"><svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6.5 18 12l-9 5.5z"/></svg><svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M9.5 6.5v11M14.5 6.5v11"/></svg></button><button data-act="next" title="次の手" aria-label="次の手を再生"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6 14.5 12 9 18"/></svg></button><button data-act="last" title="最後の手" aria-label="最後の手"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6.5 10.5 12l-5 5.5M11.5 6.5 16.5 12l-5 5.5M18.5 6.5v11"/></svg></button><button class="adopt" data-act="adopt" title="この指使いを保存・共有する">保存・共有</button></div>
+</div>
+<footer>
+  <span><i class="status-dot"></i><span id="mode-note">学習済みモデル <span class="muted">／ モデル版を確認中</span></span></span>
+  <span id="catalog-status">配置を読み込み中…</span>
+  <label class="locale-control">Language / 言語 <select data-locale-select aria-label="Language / 言語"><option value="ja" lang="ja">日本語</option><option value="en" lang="en">English</option></select></label>
+  <span id="engine-status" class="muted">エンジン: 確認中…</span>
+  <button id="examples">入力例</button>
+  <span id="queue-status"></span><button id="queue-next" hidden>次へ <kbd>n</kbd></button>
+  <span class="spacer"></span>
+  <button id="export">譜面を書き出す</button>
+  <span class="muted keys">Space 再生 · → 次の手を再生 · ← 前の手へ · P 一覧 · Enter 保存・共有 · Esc 解除</span>
+</footer>
+<dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-heading"><h2 id="dialog-title"></h2><button id="dialog-close" aria-label="閉じる">×</button></div><div id="dialog-content"></div></dialog>
+<input type="file" id="file-input" accept=".json,.txt" hidden>
+<script>
+(function () {
+  var done = false;
+  // Keep startup failures readable even when the module graph fails to load.
+  var startupLocale = null;
+  try { startupLocale = localStorage.getItem('yubi-gui.locale.v1'); } catch (_) {}
+  if (startupLocale !== 'ja' && startupLocale !== 'en') {
+    startupLocale = (navigator.languages || [navigator.language]).map(function (v) { return String(v).toLowerCase().split('-')[0]; }).find(function (v) { return v === 'ja' || v === 'en'; }) || 'ja';
+  }
+  document.documentElement.lang = startupLocale;
+  function startupText(ja, en) { return document.documentElement.lang === 'en' ? en : ja; }
+  function report(text) {
+    var box = document.getElementById('startup-error');
+    if (!box) {
+      box = document.createElement('div'); box.id = 'startup-error';
+      box.setAttribute('role', 'alert');
+      box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#fff0e8;color:#702510;padding:16px;white-space:pre-wrap;overflow-wrap:anywhere';
+      document.body.appendChild(box);
+    }
+    box.textContent = text;
+  }
+  var timer = setTimeout(function () {
+    if (!done) report(startupText('起動用JavaScriptの読み込みが20秒以上続いています。探索はまだ開始していません。', 'Startup scripts have been loading for over 20 seconds. Search has not started yet.'));
+  }, 20000);
+  import('/app.js').then(function () {
+    done = true; clearTimeout(timer);
+    var box = document.getElementById('startup-error'); if (box) box.remove();
+  }).catch(function (error) {
+    done = true; clearTimeout(timer);
+    report(startupText('アプリの起動に失敗しました（3D素材の読み込み前）。', 'The app failed to start before loading 3D assets.') + '\n' + (error.stack || error.message || String(error)));
+  });
+}());
+</script><script type="module" src="/accessibility.js"></script><script type="module" src="/all_actions.js"></script><script type="module" src="/saved_paths.js"></script><script type="module" src="/label_tasks.js"></script>
+</body></html>
